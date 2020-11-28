@@ -13,6 +13,7 @@ public class QLearning {
 	 * Run the simulation
 	 */
 	public static void main(String[] args) {
+		/*
 		int width = 8;
 		int height = 8;
 		int[] goal = new int[] {width-1, height-1};
@@ -21,38 +22,18 @@ public class QLearning {
 		for (int o = 0; o < numObstacles; o++)
 			obstacles[o] = new int[] {(int) (Math.random() * (width-1)), (int) (Math.random() * (height-1))};
 		
-//		Environment env = new Environment(width, height, goal, obstacles);
-//		int[][] rewards = env.getRewards();
-//		print2DArray(rewards);
+		Environment env = new Environment(width, height, goal, obstacles);
+		int[][] rewards = env.getRewards();
+		print2DArray(rewards);
+		*/
 		
-		Environment env = new Environment("src/main/basic.env");
-		print2DArray(env.getRewards(), "%4d ");
-	}
-	
-	/**
-	 * Print a 2D array 
-	 * @param arr Array to print
-	 * @param formatStr Format for output of each element
-	 */
-	public static void print2DArray(int[][] arr, String formatStr) {
-		for (int x = 0; x < arr.length; x++) {
-			for (int y = 0; y < arr[x].length; y++) {
-				System.out.printf(formatStr, arr[x][y]);
-			}
-			System.out.println();
-		}
-	}
-	
-	/**
-	 * Print a 2D array 
-	 * @param arr Array to print
-	 */
-	public static void print2DArray(int[][] arr) {
-		for (int x = 0; x < arr.length; x++) {
-			for (int y = 0; y < arr[x].length; y++) {
-				System.out.printf("%d ", arr[x][y]);
-			}
-			System.out.println();
-		}
+		Model env = new Model("src/main/basic.env");
+		Util.SHOW_CALLER = true;
+		Util.print2DArray(env.getRewards(), "%4d ");
+		
+//		Util.println("Non-terminal States:");
+//		for (int[] xy : env.nonTerminalStates) {
+//			Util.println(String.format("(%d %d)", xy[0], xy[1]));
+//		}
 	}
 }

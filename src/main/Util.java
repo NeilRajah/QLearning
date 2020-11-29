@@ -36,16 +36,29 @@ public class Util {
 	}
 	
 	/**
-	 * Return the greatest integer in an array
+	 * Return the greatest number in an array
 	 * @param arr Array to find max value
 	 * @return Greatest value in arr
 	 */
-	public static int max(int[] arr) {
-		int max = arr[0];
+	public static double max(double[] arr) {
+		double max = arr[0];
 		for (int i = 1; i < arr.length; i++)
 			if (arr[i] > max)
 				max = arr[i];
 		return max;
+	}
+	
+	/**
+	 * Return the greatest number in an array
+	 * @param arr Array to find max value
+	 * @return Greatest value in arr
+	 */
+	public static int maxIndex(double[] arr) {
+		int maxIndex = 0;
+		for (int i = 1; i < arr.length; i++)
+			if (arr[i] > arr[maxIndex])
+				maxIndex = i;
+		return maxIndex;
 	}
 	
 	//Output
@@ -100,7 +113,10 @@ public class Util {
 	 * @param objects Objects to print
 	 */
 	public static void println(Object ... objects) {
-		print(objects);
+		if (SHOW_CALLER)
+			printCallerInfo(DEFAULT_STACK_INDEX);
+		for (Object o : objects)
+			System.out.print(o.toString() + " ");
 		System.out.println();
 	} 
 }

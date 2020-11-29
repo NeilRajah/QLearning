@@ -7,33 +7,29 @@
 
 package main;
 
+import java.util.ArrayList;
+
 public class QLearning {
 
 	/**
 	 * Run the simulation
 	 */
 	public static void main(String[] args) {
-		/*
-		int width = 8;
-		int height = 8;
-		int[] goal = new int[] {width-1, height-1};
-		int numObstacles = 5;
-		int[][] obstacles = new int[numObstacles][];
-		for (int o = 0; o < numObstacles; o++)
-			obstacles[o] = new int[] {(int) (Math.random() * (width-1)), (int) (Math.random() * (height-1))};
-		
-		Environment env = new Environment(width, height, goal, obstacles);
-		int[][] rewards = env.getRewards();
-		print2DArray(rewards);
-		*/
-		
-		Model env = new Model("src/main/basic.env");
+		//Create a Model from a file
+		Model model = new Model("src/main/basic.env");
 		Util.SHOW_CALLER = true;
-		Util.print2DArray(env.getRewards(), "%4d ");
+		Util.print2DArray(model.getRewards(), "%4d ");
 		
-//		Util.println("Non-terminal States:");
-//		for (int[] xy : env.nonTerminalStates) {
-//			Util.println(String.format("(%d %d)", xy[0], xy[1]));
-//		}
+		//Train, check how long it takes
+		long startTime = System.currentTimeMillis();
+		model.train();
+		Util.println("Training took", (System.currentTimeMillis() - startTime) / 1000.0, "seconds");
+		
+		//Print the shortest path to the goal
+		Util.println("\nShortest Path:");
+		ArrayList<int[]> shortestPath = model.getShortestPath(0, 0);
+		for (int[] p : shortestPath)
+			System.out.println(p[0] +" "+ p[1]);
+		//Create 2D array, graphics to visualize
 	}
 }

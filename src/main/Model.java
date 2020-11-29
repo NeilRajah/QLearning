@@ -32,13 +32,13 @@ public class Model {
 	//Attributes
 	private int rows;								//Rows in the grid
 	private int cols; 								//Columns in the grid
-	private int[][][] q_vals;						//Q-values (state, action) pairs
+	private double[][][] qValues;					//Q-values (state, action) pairs
 	private int[][] rewards;						//Rewards (same dimension as grid)
 	private ArrayList<int[]> nonTerminalStates;		//Safe states for the agent to be in
 	private int numEpisodes;						//Number of episodes to simulate
 	private double epsilon = 0.9;					//How often the Agent wants to choose a random move to explore its environment
-	private double discount_factor = 0.9;			//How much to discount future rewards
-	private double learning_rate = 0.9;				//The rate the agent should learn at
+	private double discountFactor = 0.9;			//How much to discount future rewards
+	private double learningRate = 0.9;				//The rate the agent should learn at
 	
 	/**
 	 * Create a Model from a file
@@ -88,6 +88,19 @@ public class Model {
 			
 			s.close();
 			
+			/*
+			 * 3D array of Q-values Q(s,a)
+			 * x-dimension: 11 horizontal grid spots
+			 * y-dimension: 11 vertical grid spots
+			 * action dimension: 4 moves
+			 * Initial values are zero
+			 */
+			qValues = new double[rows][cols][NUM_ACTIONS];
+			for (int r = 0; r < rows; r++)
+				for (int c = 0; c < cols; c++)
+					for (int a = 0; a < NUM_ACTIONS; a++)
+						qValues[r][c][a] = 0;
+			
 		//Could not find file
 		} catch (FileNotFoundException fnf) {
 			Util.println("Model:", filename, "was not found!");
@@ -115,11 +128,11 @@ public class Model {
 		 * action dimension: 4 moves
 		 * Initial values are zero
 		 */
-		q_vals = new int[rows][cols][NUM_ACTIONS];
+		qValues = new double[rows][cols][NUM_ACTIONS];
 		for (int r = 0; r < rows; r++)
 			for (int c = 0; c < cols; c++)
 				for (int a = 0; a < NUM_ACTIONS; a++)
-					q_vals[r][c][a] = 0;
+					qValues[r][c][a] = 0;
 		
 		//Add the rewards
 		createRewards(goal, obstacles);
@@ -181,12 +194,12 @@ public class Model {
 	 * @return Next action for the agent to take
 	 */
 	private ACTION getNextAction(int row, int col, double epsilon) {
-		//There is an (epsilon * 100) % chance that the agent chooses the best move
-		if (Math.random() < epsilon)
-			return ACTIONS[Util.max(q_vals[row][col])];
-		
-		//In other cases, it chooses a random move. This encourages it to explore its environment
-		return ACTIONS[Util.randInt(ACTIONS.length)];
+		/*
+		 * There is an (epsilon * 100) % chance that the agent chooses the best move. In all other cases,
+		 * the agent chooses a random move. This encourages it to explore its environment.
+		 */
+		return Math.random() < epsilon ? ACTIONS[Util.maxIndex(qValues[row][col])] : ACTIONS[Util.randInt(ACTIONS.length-1)];
+		//*** check if the random int in best move corresponds to the correct direction
 	}
 	
 	/**
@@ -201,11 +214,13 @@ public class Model {
 			case UP:
 				return new int[] {Math.max(row-1, 0), col};
 			case DOWN:
-				return new int[] {Math.min(row+1, this.rows), col};
+				return new int[] {Math.min(row+1, this.rows-1), col};
 			case LEFT:
 				return new int[] {row, Math.max(col-1, 0)};
 			case RIGHT:
-				return new int[] {row, Math.min(col+1, this.cols)};
+				return new int[] {row, Math.min(col+1, this.cols-1)};
+				
+			//shouldn't go here
 			default:
 				return ERROR_STATE;
 		}
@@ -217,9 +232,11 @@ public class Model {
 	 * @param startCol Column to begin searching from
 	 * @return Shortest path defined by the (x,y) coordinates of each point along it
 	 */
-	private ArrayList<int[]> getShortestPath(int startRow, int startCol) {
+	public ArrayList<int[]> getShortestPath(int startRow, int startCol) {
+		//No path if the agent starts at a terminal state
 		if (isTerminalState(startRow, startCol)) {
 			return null;
+			
 		} else {
 			//Create the shortest path list, starting at the start position
 			ArrayList<int[]> shortestPath = new ArrayList<int[]>();
@@ -239,6 +256,18 @@ public class Model {
 	}
 	
 	/**
+	 * Calculate the temporal difference for a current state and previous Q value
+	 * @param row Current row agent is at
+	 * @param col Current column agent is at
+	 * @param action Action agent took
+	 * @param oldQValue Previous Q value
+	 * @return Temporal difference between old and now state
+	 */
+	private double temporalDifference(int row, int col, ACTION action, double oldQ) {
+		return rewards[row][col] + (discountFactor * Util.max(qValues[row][col])) - oldQ;
+	}
+	
+	/**
 	 * Train the model
 	 * 1. Choose random non-terminal state to start at
 	 * 2. Choose action using epsilon greedy algorithm
@@ -251,7 +280,9 @@ public class Model {
 		for (int episode = 0; episode < numEpisodes; episode++) {
 			int[] pos = getStartingLocation();
 			int[] prevPos;
+			double oldQ;
 			
+			//Episode ends when the agent hits a terminal state
 			while (!isTerminalState(pos[0], pos[1])) {
 				//Choose which action to take
 				ACTION action = getNextAction(pos[0], pos[1], epsilon);
@@ -261,13 +292,13 @@ public class Model {
 				prevPos = pos;
 				pos = getNextLocation(pos[0], pos[1], action);
 				
-				/*
-				 * To-Do
-				 * 4, 5, 6
-				 * Temporal Difference helper method
-				 * Start graphics
-				 */
+				//Update Q values
+				oldQ = qValues[prevPos[0]][prevPos[1]][action.ordinal()];
+				double temporalDifference = temporalDifference(pos[0], pos[1], action, oldQ);
+				qValues[prevPos[0]][prevPos[1]][action.ordinal()] = learningRate * temporalDifference + oldQ;
 			}
 		}
+		
+		Util.println("Trained for", numEpisodes, "episodes");
 	}
 }

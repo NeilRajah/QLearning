@@ -25,11 +25,18 @@ public class QLearning {
 		model.train();
 		Util.println("Training took", (System.currentTimeMillis() - startTime) / 1000.0, "seconds");
 		
+		/*
 		//Print the shortest path to the goal
 		Util.println("\nShortest Path:");
+		startTime = System.currentTimeMillis();
 		ArrayList<int[]> shortestPath = model.getShortestPath(0, 0);
 		for (int[] p : shortestPath)
 			System.out.println(p[0] +" "+ p[1]);
 		//Create 2D array, graphics to visualize
+		Util.println("Shortest Path took", (System.currentTimeMillis() - startTime) / 1000.0, "seconds");
+		*/
+		
+		Window w = new Window(model, 100);
+		w.launch();
 	}
 }

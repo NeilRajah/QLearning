@@ -138,6 +138,40 @@ public class Model {
 		createRewards(goal, obstacles);
 	}
 	
+	//Attributes
+	
+	/**
+	 * Get the rows in the Model
+	 * @return Number of rows in the Model
+	 */
+	public int getRows() {
+		return rows;
+	}
+
+	/**
+	 * Get the cols in the Model
+	 * @return Number of rows in the Model
+	 */
+	public int getCols() {
+		return cols;
+	}
+	
+	/**
+	 * Get the Q-values in the grid
+	 * @return Grid's Q-values
+	 */
+	public double[][][] getQValues() {
+		return qValues;
+	}
+	
+	/**
+	 * Get the rewards
+	 * @return 2D array of rewards, indexed by their (x,y) positions
+	 */
+	public int[][] getRewards() {
+		return rewards;
+	}
+
 	/**
 	 * Create the rewards based on the list of goals and obstacles
 	 */
@@ -156,14 +190,6 @@ public class Model {
 			int[] obst = obstacles[o];
 			rewards[obst[0]][obst[1]] = OBSTACLE_REWARD;
 		}
-	}
-	
-	/**
-	 * Get the rewards
-	 * @return 2D array of rewards, indexed by their (x,y) positions
-	 */
-	public int[][] getRewards() {
-		return rewards;
 	}
 	
 	//Training

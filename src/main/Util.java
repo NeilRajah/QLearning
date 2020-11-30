@@ -7,6 +7,10 @@
 
 package main;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class Util {
 	//Constants
 	private static final int DEFAULT_STACK_INDEX = 3;	//For printing messages to the console
@@ -92,6 +96,39 @@ public class Util {
 	 */
 	public static double avg(double[] arr) {
 		return sum(arr) / (double) arr.length;
+	}
+	
+	/**
+	 * Scale an array by a linear scalar
+	 * @param arr Array to scale
+	 * @param s Scaling factor
+	 * @return Scaled array
+	 */
+	public static int[] scaleArray(int[] arr, int s) {
+		for (int i = 0; i < arr.length; i++)
+			arr[i] *= s;
+		return arr;
+	}
+	
+	/**
+	 * Scale an array by a linear scalar
+	 * @param arr Array to scale
+	 * @param s Scaling factor
+	 * @return Scaled array
+	 */
+	public static double[] scaleArray(double[] arr, double s) {
+		for (int i = 0; i < arr.length; i++)
+			arr[i] *= s;
+		return arr;
+	}
+
+	/**
+	 * Get a random element in the list
+	 * @param list List to get element from
+	 * @return The random element
+	 */
+	public static Object getRandomElement(List<?> list) {
+		return list.get(randInt(list.size()-1));
 	}
 	
 	//Output

@@ -9,6 +9,7 @@ package main;
 
 import java.awt.Color;
 import java.awt.Toolkit;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -59,7 +60,19 @@ public class Window extends JFrame {
 		this.setVisible(true);
 	}
 	
-	public void setPath(String pathFilename) {
+	/**
+	 * Show the path on the screen
+	 * @param pathFilename Name of the file storing the path
+	 */
+	public void showPath(String pathFilename) {
 		env.setPath(pathFilename);
+	}
+	
+	/**
+	 * Show the path on the screen
+	 * @param path Path to draw
+	 */
+	public void showPath(ArrayList<int[]> path) {
+		env.setPath(path);
 	}
 }

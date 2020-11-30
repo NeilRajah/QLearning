@@ -10,6 +10,7 @@ package main;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 public class Model {
@@ -118,10 +119,12 @@ public class Model {
 	 * @param goal Goal (x,y)
 	 * @param obstacles Obstacles in the grid
 	 */
-	public Model(int rows, int cols, int[] goal, int[][] obstacles) {
-		//Set size attributes
+	public Model(int rows, int cols, int[] goal, int[][] obstacles, int numEpisodes) {
+		//Set attributes
 		this.rows = rows;
 		this.cols = cols;
+		this.numEpisodes = numEpisodes;
+		this.nonTerminalStates = new ArrayList<int[]>();
 		
 		/*
 		 * 3D array of Q-values Q(s,a)
@@ -191,14 +194,25 @@ public class Model {
 	}
 	
 	/**
+	 * Get the non-terminal states
+	 * @return Non-terminal states on the grid
+	 */
+	public ArrayList<int[]> getNonTerminalStates(){
+		return nonTerminalStates;
+	}
+	
+	/**
 	 * Create the rewards based on the list of goals and obstacles
 	 */
 	private void createRewards(int[] goal, int[][] obstacles) {
 		//Create rewards and fill with base value
 		rewards = new int[rows][cols];
 		for (int x = 0; x < rows; x++)
-			for (int y = 0; y < cols; y++)
+			for (int y = 0; y < cols; y++) {
 				rewards[x][y] = PATH_REWARD;
+				nonTerminalStates.add(new int[] {x,y});
+			}
+				
 		
 		//Add goal reward
 		rewards[goal[0]][goal[1]] = GOAL_REWARD;
@@ -207,9 +221,14 @@ public class Model {
 		for (int o = 0; o < obstacles.length; o++) {
 			int[] obst = obstacles[o];
 			rewards[obst[0]][obst[1]] = OBSTACLE_REWARD;
+			nonTerminalStates.remove(obst);
 		}
 	}
 	
+	/**
+	 * Set the Environment for live training
+	 * @param env Environment to draw
+	 */
 	public void setEnvironment(Environment env) {
 		this.env = env;
 	}
@@ -246,8 +265,9 @@ public class Model {
 		 * There is an (epsilon * 100) % chance that the agent chooses the best move. In all other cases,
 		 * the agent chooses a random move. This encourages it to explore its environment.
 		 */
+		
+		// *** remove actions from the edges of the grid (ie. can't go up above first row) ***
 		return Math.random() < epsilon ? ACTIONS[Util.maxIndex(qValues[row][col])] : ACTIONS[Util.randInt(ACTIONS.length-1)];
-		//*** check if the random int in best move corresponds to the correct direction
 	}
 	
 	/**
@@ -293,7 +313,8 @@ public class Model {
 			
 			//Path always ends on a terminal state
 			while (!isTerminalState(currentPos[0], currentPos[1])) {
-				ACTION action = getNextAction(currentPos[0], currentPos[1], 1.0); //Choose the best action
+				//Choose the best action
+				ACTION action = getNextAction(currentPos[0], currentPos[1], 1.0); 
 				
 				//Move to the next location on the path and add it to the list
 				currentPos = getNextLocation(currentPos[0], currentPos[1], action);
@@ -348,13 +369,16 @@ public class Model {
 		}
 		Util.println("Trained for", numEpisodes, "episodes");
 		
-		double[][] avgQ = new double[qValues.length][qValues[0].length];
-		for (int x = 0; x < avgQ.length; x++)
-			for (int y = 0; y < avgQ[0].length; y++)
-				avgQ[x][y] = Util.avg(qValues[x][y]);
-		Util.print2DArray(avgQ, "%6.2f ");
+//		double[][] avgQ = new double[qValues.length][qValues[0].length];
+//		for (int x = 0; x < avgQ.length; x++)
+//			for (int y = 0; y < avgQ[0].length; y++)
+//				avgQ[x][y] = Util.avg(qValues[x][y]);
+//		Util.print2DArray(avgQ, "%6.2f ");
 	}
 	
+	/**
+	 * Train the model live (draw to the screen)
+	 */
 	public void liveTrain() {
 		for (int episode = 0; episode < numEpisodes; episode++) {
 			int[] start = getStartingLocation();

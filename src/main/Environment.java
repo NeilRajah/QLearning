@@ -13,10 +13,14 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
@@ -41,6 +45,7 @@ public class Environment extends JComponent {
 	private int line;
 	private BufferedImage bg;
 	private Window window;
+	private ArrayList<int[]> path;
 	
 	public Environment(Model model, int pixelsPerCell) {
 		//Set attributes
@@ -52,6 +57,7 @@ public class Environment extends JComponent {
 		this.height = pixelsPerCell * cols;
 		this.line = pixelsPerCell / 10;
 		this.agentWidth = pixelsPerCell / 2;
+		this.path = new ArrayList<int[]>();
 		
 		this.setPreferredSize(new Dimension(width, height));
 		
@@ -153,27 +159,89 @@ public class Environment extends JComponent {
 		g2.setFont(g2.getFont().deriveFont(pixelsPerCell * 0.25f));
 		FontMetrics fm = g2.getFontMetrics();
 		
-		//Convert from double to string and draw centered in box
+		//Convert from double to string and draw the Q-value centered in box
 		double[][][] qValues = model.getQValues();
-//		int[][] rewards = model.getRewards();
 		for (int x = 0; x < qValues.length; x++) {
 			for (int y = 0; y < qValues[x].length; y++) {
 				String qVal = String.format("%.3f", Util.max(qValues[x][y]));
-//				String qVal = String.format("%d", rewards[x][y]);
 				Rectangle2D strBounds = fm.getStringBounds(qVal, g2);
 				int strX = (int) ((x + 0.5) * pixelsPerCell - strBounds.getWidth() / 2);
 				int strY = (int) ((y + 0.5) * pixelsPerCell + strBounds.getHeight() / 2);
 				g2.drawString(qVal, strX, strY);
 			}
 		}
+		
+		//If there is a path, draw it
+		if (path != null && path.size() > 0)
+			drawPath(g2);
 	}
 	
+	/**
+	 * Draw the path, if it exists
+	 * @param g2 Drawing object
+	 */
+	private void drawPath(Graphics2D g2) {
+		//Configure line
+		g2.setColor(Color.RED);
+		Stroke s = new BasicStroke(pixelsPerCell/10, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+		g2.setStroke(s);
+		
+		//Draw a line from one spot to the next
+		int[] start = Util.scaleArray(path.get(0), pixelsPerCell);
+		int offset = pixelsPerCell/2;
+		int prevX = start[1] + offset;
+		int prevY = start[0] + offset;
+		int START_SIZE = pixelsPerCell/5;
+		g2.fillOval(prevX - START_SIZE/2, prevY - START_SIZE/2, START_SIZE, START_SIZE);
+		
+		for (int i = 1; i < path.size(); i++) {
+			int[] pos = Util.scaleArray(path.get(i), pixelsPerCell);
+			int x = pos[1] + offset;
+			int y = pos[0] + offset;
+			
+			g2.drawLine(prevX, prevY, x, y);
+			
+			prevX = x;
+			prevY = y;
+		}
+	}
+	
+	/**
+	 * Set the path from a filename
+	 * @param pathFilename Name of the File containing the path
+	 */
 	public void setPath(String pathFilename) {
-		//read file
-		//set path
-		//draw path
+		//Read the file
+		try {
+			Scanner s = new Scanner(new File(pathFilename));
+			
+			//Convert each line to the int[] with the position
+			while (s.hasNextLine()) {
+				String[] line = s.nextLine().split(" ");
+				path.add(new int[] {Integer.parseInt(line[0]), Integer.parseInt(line[1])});
+			}
+			
+			s.close();
+			Util.println("Shortest path is", this.path.size()-1, "steps long");
+			
+		//If the file could not be found
+		} catch (FileNotFoundException fnf) {
+			Util.println("Could not find", pathFilename);
+		}
 	}
 	
+	/**
+	 * Set the path to draw
+	 * @param path Path to draw
+	 */
+	public void setPath(ArrayList<int[]> path) {
+		this.path = path;
+		Util.println("Shortest path is", this.path.size()-1, "steps long");
+	}
+	
+	/*
+	 * TBD
+	 */
 	public void showMousePath() {
 		//after training, show path from spot mouse is over to the goal
 	}

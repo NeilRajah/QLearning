@@ -15,9 +15,9 @@ import java.util.Scanner;
 public class Model {
 	//Constants
 	private final int NUM_ACTIONS = 4;						//Number of actions the agent can take
-	private final int OBSTACLE_REWARD = -100;				//Punishment for hitting obstacle
-	private final int PATH_REWARD = -1;						//Reward for moving along path
-	private final int GOAL_REWARD = 100;					//Reward for reaching goal
+	public static final int OBSTACLE_REWARD = -100;			//Punishment for hitting obstacle
+	public static final int PATH_REWARD = -1;				//Reward for moving along path
+	public static final int GOAL_REWARD = 100;				//Reward for reaching goal
 	private final int[] ERROR_STATE = new int[] {-1, -1};	//Error state
 	
 	//Actions agent can take
@@ -36,9 +36,11 @@ public class Model {
 	private int[][] rewards;						//Rewards (same dimension as grid)
 	private ArrayList<int[]> nonTerminalStates;		//Safe states for the agent to be in
 	private int numEpisodes;						//Number of episodes to simulate
+	private int agentX, agentY;						//X and Y positions of agent
 	private double epsilon = 0.9;					//How often the Agent wants to choose a random move to explore its environment
 	private double discountFactor = 0.9;			//How much to discount future rewards
 	private double learningRate = 0.9;				//The rate the agent should learn at
+	private Environment env;						//Environment to update when live training
 	
 	/**
 	 * Create a Model from a file
@@ -173,6 +175,22 @@ public class Model {
 	}
 
 	/**
+	 * Get the X position of the agent
+	 * @return X position of agent on grid
+	 */
+	public int getAgentX() {
+		return agentX;
+	}
+	
+	/**
+	 * Get the Y position of the agent
+	 * @return Y position of agent on grid
+	 */
+	public int getAgentY() {
+		return agentY;
+	}
+	
+	/**
 	 * Create the rewards based on the list of goals and obstacles
 	 */
 	private void createRewards(int[] goal, int[][] obstacles) {
@@ -190,6 +208,10 @@ public class Model {
 			int[] obst = obstacles[o];
 			rewards[obst[0]][obst[1]] = OBSTACLE_REWARD;
 		}
+	}
+	
+	public void setEnvironment(Environment env) {
+		this.env = env;
 	}
 	
 	//Training
@@ -324,7 +346,44 @@ public class Model {
 				qValues[prevPos[0]][prevPos[1]][action.ordinal()] = learningRate * temporalDifference + oldQ;
 			}
 		}
+		Util.println("Trained for", numEpisodes, "episodes");
 		
+		double[][] avgQ = new double[qValues.length][qValues[0].length];
+		for (int x = 0; x < avgQ.length; x++)
+			for (int y = 0; y < avgQ[0].length; y++)
+				avgQ[x][y] = Util.avg(qValues[x][y]);
+		Util.print2DArray(avgQ, "%6.2f ");
+	}
+	
+	public void liveTrain() {
+		for (int episode = 0; episode < numEpisodes; episode++) {
+			int[] start = getStartingLocation();
+			agentX = start[0];
+			agentY = start[1];
+			int[] prevPos;
+			double oldQ;
+			
+			//Episode ends when the agent hits a terminal state
+			while (!isTerminalState(agentX, agentY)) {
+				//Choose which action to take
+				ACTION action = getNextAction(agentX, agentY, epsilon);
+				// *** grow epsilon over time to explore early, choose best later ***
+				
+				//Perform action, transition to next state
+				prevPos = new int[] {agentX, agentY};
+				int[] newPos = getNextLocation(agentX, agentY, action);
+				agentX = newPos[0];
+				agentY = newPos[1];
+				
+				//Update Q values
+				oldQ = qValues[prevPos[0]][prevPos[1]][action.ordinal()];
+				double temporalDifference = temporalDifference(agentX, agentY, action, oldQ);
+				qValues[prevPos[0]][prevPos[1]][action.ordinal()] = learningRate * temporalDifference + oldQ;
+				
+				//Update the environment
+				env.update(episode);
+			}
+		}
 		Util.println("Trained for", numEpisodes, "episodes");
 	}
 }

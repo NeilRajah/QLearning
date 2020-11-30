@@ -36,7 +36,9 @@ public class Window extends JFrame {
 		this.panel = new JPanel();
 		
 		//Environment where learning takes place
-		env = new Environment(m.getRows(), m.getCols(), pixelsPerCell);
+		env = new Environment(m, pixelsPerCell);
+		m.setEnvironment(env);
+		env.setWindow(this);
 		panel.add(env);
 		panel.setBackground(Color.WHITE);
 	}
@@ -51,10 +53,13 @@ public class Window extends JFrame {
 		this.setContentPane(panel);
 		this.setUndecorated(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		this.setPreferredSize(new Dimension(w, h));
 		this.setBounds(w/2, (sysH-h)/2, w, h);
 		this.setResizable(false);
 		this.pack();
 		this.setVisible(true);
+	}
+	
+	public void setPath(String pathFilename) {
+		env.setPath(pathFilename);
 	}
 }

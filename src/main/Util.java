@@ -14,6 +14,18 @@ public class Util {
 	//Variables
 	public static boolean SHOW_CALLER = false;			//Show the method's caller
 	
+	//Threads
+	
+	/**
+	 * Pause the Thread of the method calling this
+	 * @param pause Time to pause the thread in milliseconds
+	 */
+	public static void sleep(long pause) {
+		try {
+			Thread.sleep(pause);
+		} catch (InterruptedException i) {}
+	}
+	
 	//Math
 	
 	/**
@@ -61,6 +73,27 @@ public class Util {
 		return maxIndex;
 	}
 	
+	/**
+	 * Return the sum of an array
+	 * @param arr Array of values to sum
+	 * @return Sum of the array
+	 */
+	public static double sum(double[] arr) {
+		double sum = 0;
+		for (int i = 0; i < arr.length; i++)
+			sum += arr[i];
+		return sum;
+	}
+	
+	/**
+	 * Return the average of an array
+	 * @param arr Array of values to average
+	 * @return Average of the array
+	 */
+	public static double avg(double[] arr) {
+		return sum(arr) / (double) arr.length;
+	}
+	
 	//Output
 	
 	/**
@@ -69,6 +102,31 @@ public class Util {
 	 * @param formatStr Format for output of each element
 	 */
 	public static void print2DArray(int[][] arr, String formatStr) {
+		if (SHOW_CALLER) {
+			printCallerInfo(DEFAULT_STACK_INDEX);
+			System.out.println();
+		}
+		for (int x = 0; x < arr.length; x++) {
+			for (int y = 0; y < arr[x].length; y++)
+				System.out.printf(formatStr, arr[x][y]);
+			System.out.println();
+		}
+	}
+	
+	/**
+	 * Print a 2D array 
+	 * @param arr Array to print
+	 */
+	public static void print2DArray(double[][] arr) {
+		print2DArray(arr, "%.2f ");
+	}
+	
+	/**
+	 * Print a 2D array 
+	 * @param arr Array to print
+	 * @param formatStr Format for output of each element
+	 */
+	public static void print2DArray(double[][] arr, String formatStr) {
 		if (SHOW_CALLER) {
 			printCallerInfo(DEFAULT_STACK_INDEX);
 			System.out.println();
